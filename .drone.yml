@@ -1,0 +1,25 @@
+---
+kind: pipeline
+type: docker
+name: default
+
+steps:
+- name: build
+  image: alpine
+  volumes:
+  - name: docker_sock
+    path: /var/run/docker.sock
+  commands:
+    - apk update; apk add docker
+    - docker build -t ubuntu-statuspage:latest -f ubuntu-statuspage.Dockerfile .
+
+volumes:
+- name: docker_sock
+  host:
+    path: /var/run/docker.sock
+
+---
+kind: signature
+hmac: 4f855954cac369760841d6e98a987eb99b9737cafccee0a42b2453dea99ce643
+
+...
