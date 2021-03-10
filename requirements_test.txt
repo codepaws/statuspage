@@ -1,0 +1,7 @@
+coverage
+flake8
+mock
+pycodestyle
+pylint
+pyinstaller
+stestr

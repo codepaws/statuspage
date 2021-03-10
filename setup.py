@@ -13,21 +13,17 @@ with io.open('README.md', 'r', encoding='utf-8') as readme_file:
 with io.open('CHANGELOG.md', 'r', encoding='utf-8') as history_file:
     history = history_file.read()
 
-requirements = [
-    'pygithub',
-    'click',
-    'jinja2',
-    'tqdm',
-    'requests',
-    'markdown2'
-]
+with io.open('requirements.txt', 'r', encoding='utf-8') as requirements_file:
+    requirements = requirements_file.read().splitlines()
 
 long_description = readme + '\n\n' + history
+
 
 setup(
     name='statuspage',
     version=__version__,
-    description=('A statuspage generator that lets you host your statuspage for free on Github.'),
+    description=('A statuspage generator that lets you host your statuspage '
+                 'for free on Github.'),
     long_description=long_description,
     author='Jannis Gebauer',
     author_email='ja.geb@me.com',
@@ -50,14 +46,8 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python',
         'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.3',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: Implementation :: CPython',
-        'Programming Language :: Python :: Implementation :: PyPy',
         'Topic :: Software Development',
     ],
-    keywords="statuspage"
+    keywords='statuspage'
 )
