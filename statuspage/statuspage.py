@@ -60,8 +60,10 @@ def config_init():
 @click.option('--config', help='')
 @click.option('--branch-main', help='GitHub main branch', default='main')
 @click.option('--branch-pages', help='GitHub pages branch', default='gh-pages')
-def create(token, name, systems, org, private, config, branch_main, branch_pages):
-    run_create(name=name, token=token, systems=systems, org=org, private=private, config_path=config, branch_main=branch_main, branch_pages=branch_pages)
+@click.option('--github-api', help='API server to use', default='https://api.github.com')
+@click.option('--ssl-verify', help='Verify SSL on GitHub requests', default=True)
+def create(token, name, systems, org, private, config, branch_main, branch_pages, github_api, ssl_verify):
+    run_create(name=name, token=token, systems=systems, org=org, private=private, config_path=config, branch_main=branch_main, branch_pages=branch_pages, github_api=github_api, ssl_verify=ssl_verify)
 
 
 @cli.command()
@@ -69,8 +71,10 @@ def create(token, name, systems, org, private, config, branch_main, branch_pages
 @click.option('--org', help='GitHub Organization', default=False)
 @click.option('--token', prompt='GitHub API Token', help='')
 @click.option('--branch-pages', help='GitHub pages branch', default='gh-pages')
-def update(name, token, org, branch_pages):
-    run_update(name=name, token=token, org=org, branch_pages=branch_pages)
+@click.option('--github-api', help='API server to use', default='https://api.github.com')
+@click.option('--ssl-verify', help='Verify SSL on GitHub requests', default=True)
+def update(name, token, org, branch_pages, github_api, ssl_verify):
+    run_update(name=name, token=token, org=org, branch_pages=branch_pages, github_api=github_api, ssl_verify=ssl_verify)
 
 
 @cli.command()
@@ -78,8 +82,10 @@ def update(name, token, org, branch_pages):
 @click.option('--org', help='GitHub Organization', default=False)
 @click.option('--token', prompt='GitHub API Token', help='')
 @click.option('--branch-pages', help='GitHub pages branch', default='gh-pages')
-def upgrade(name, token, org, branch_pages):
-    run_upgrade(name=name, token=token, org=org, branch_pages=branch_pages)
+@click.option('--github-api', help='API server to use', default='https://api.github.com')
+@click.option('--ssl-verify', help='Verify SSL on GitHub requests', default=True)
+def upgrade(name, token, org, branch_pages, github_api, ssl_verify):
+    run_upgrade(name=name, token=token, org=org, branch_pages=branch_pages, github_api=github_api, ssl_verify=ssl_verify)
 
 
 @cli.command()
@@ -89,8 +95,10 @@ def upgrade(name, token, org, branch_pages):
 @click.option('--system', prompt='System', help='System to add')
 @click.option('--prompt/--no-prompt', default=True)
 @click.option('--branch-pages', help='GitHub pages branch', default='gh-pages')
-def add_system(name, token, org, system, prompt, branch_pages):
-    run_add_system(name=name, token=token, org=org, system=system, prompt=prompt, branch_pages=branch_pages)
+@click.option('--github-api', help='API server to use', default='https://api.github.com')
+@click.option('--ssl-verify', help='Verify SSL on GitHub requests', default=True)
+def add_system(name, token, org, system, prompt, branch_pages, github_api, ssl_verify):
+    run_add_system(name=name, token=token, org=org, system=system, prompt=prompt, branch_pages=branch_pages, github_api=github_api, ssl_verify=ssl_verify)
 
 
 @cli.command()
@@ -100,8 +108,10 @@ def add_system(name, token, org, system, prompt, branch_pages):
 @click.option('--system', prompt='System', help='System to remove')
 @click.option('--prompt/--no-prompt', default=True)
 @click.option('--branch-pages', help='GitHub pages branch', default='gh-pages')
-def remove_system(name, token, org, system, prompt, branch_pages):
-    run_remove_system(name=name, token=token, org=org, system=system, prompt=prompt, branch_pages=branch_pages)
+@click.option('--github-api', help='API server to use', default='https://api.github.com')
+@click.option('--ssl-verify', help='Verify SSL on GitHub requests', default=True)
+def remove_system(name, token, org, system, prompt, branch_pages, github_api, ssl_verify):
+    run_remove_system(name=name, token=token, org=org, system=system, prompt=prompt, branch_pages=branch_pages, github_api=github_api, ssl_verify=ssl_verify)
 
 
 def init_default_config():
@@ -123,17 +133,17 @@ def read_local_config(path):
     else:
         raise
 
-def run_add_system(name, token, org, system, prompt, branch_pages):
+def run_add_system(name, token, org, system, prompt, branch_pages, github_api, ssl_verify):
     """
     Adds a new system to the repo.
     """
-    repo = get_repo(token=token, org=org, name=name)
+    repo = get_repo(token=token, org=org, name=name, github_api=github_api, ssl_verify=ssl_verify)
     config = get_config(repo, branch_pages)
     try:
         repo.create_label(name=system.strip(), color=config['system-color'])
         click.secho("Successfully added new system {}".format(system), fg="green")
         if prompt and click.confirm("Run update to re-generate the page?"):
-            run_update(name=name, token=token, org=org, branch_pages=branch_pages)
+            run_update(name=name, token=token, org=org, branch_pages=branch_pages, github_api=github_api, ssl_verify=ssl_verify)
     except GithubException as e:
         if e.status == 422:
             click.secho(
@@ -142,25 +152,25 @@ def run_add_system(name, token, org, system, prompt, branch_pages):
         raise
 
 
-def run_remove_system(name, token, org, system, prompt, branch_pages):
+def run_remove_system(name, token, org, system, prompt, branch_pages, github_api, ssl_verify):
     """
     Removes a system from the repo.
     """
-    repo = get_repo(token=token, org=org, name=name)
+    repo = get_repo(token=token, org=org, name=name, github_api=github_api, ssl_verify=ssl_verify)
     try:
         label = repo.get_label(name=system.strip())
         label.delete()
         click.secho("Successfully deleted {}".format(system), fg="green")
         if prompt and click.confirm("Run update to re-generate the page?"):
-            run_update(name=name, token=token, org=org, branch_pages=branch_pages)
+            run_update(name=name, token=token, org=org, branch_pages=branch_pages, github_api=github_api, ssl_verify=ssl_verify)
     except UnknownObjectException:
         click.secho("Unable to remove system {}, it does not exist.".format(system), fg="yellow")
 
 
-def run_upgrade(name, token, org, branch_pages):
+def run_upgrade(name, token, org, branch_pages, github_api, ssl_verify):
     click.echo("Upgrading...")
 
-    repo = get_repo(token=token, name=name, org=org)
+    repo = get_repo(token=token, name=name, org=org, github_api=github_api, ssl_verify=ssl_verify)
     files = get_files(repo=repo)
     head_sha = repo.get_git_ref("heads/" + branch_pages).object.sha
 
@@ -193,9 +203,9 @@ def run_upgrade(name, token, org, branch_pages):
                 )
 
 
-def run_update(name, token, org, branch_pages):
+def run_update(name, token, org, branch_pages, github_api, ssl_verify):
     click.echo("Generating..")
-    repo = get_repo(token=token, name=name, org=org)
+    repo = get_repo(token=token, name=name, org=org, github_api=github_api, ssl_verify=ssl_verify)
     issues = get_issues(repo)
 
     # get the SHA of the current HEAD
@@ -249,8 +259,8 @@ def run_update(name, token, org, branch_pages):
         )
 
 
-def run_create(name, token, systems, org, private, config_path, branch_main, branch_pages):
-    gh = Github(token)
+def run_create(name, token, systems, org, private, config_path, branch_main, branch_pages, github_api, ssl_verify):
+    gh = Github(login_or_token=token, base_url=github_api, verify=ssl_verify)
     config = read_local_config(config_path) if config_path else DEFAULT_CONFIG
 
     if org:
@@ -312,7 +322,7 @@ def run_create(name, token, systems, org, private, config_path, branch_main, bra
     repo.edit(name=name, default_branch=branch_pages)
 
     # run an initial update to add content to the index
-    run_update(token=token, name=name, org=org, branch_pages=branch_pages)
+    run_update(token=token, name=name, org=org, branch_pages=branch_pages, github_api=github_api, ssl_verify=ssl_verify)
 
     click.echo("\nCreate new issues at https://github.com/{login}/{name}/issues".format(
         login=entity.login,
@@ -382,8 +392,8 @@ def get_panels(systems):
     return panels
 
 
-def get_repo(token, name, org):
-    gh = Github(token)
+def get_repo(token, name, org, github_api, ssl_verify):
+    gh = Github(login_or_token=token, base_url=github_api, verify=ssl_verify)
     if org:
         return gh.get_organization(org).get_repo(name=name)
     return gh.get_user().get_repo(name=name)
