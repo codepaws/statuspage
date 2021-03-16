@@ -5,7 +5,7 @@ from datetime import datetime
 from unittest import TestCase
 from mock import patch, Mock
 from click.testing import CliRunner
-from statuspage import cli, update, upgrade, create, iter_systems, get_severity, SYSTEM_LABEL_COLOR
+from statuspage import cli, update, upgrade, create, iter_systems, get_severity, DEFAULT_CONFIG
 from github import UnknownObjectException
 import codecs
 
@@ -193,15 +193,15 @@ class UtilTestCase(TestCase):
         label1 = Mock()
         label2 = Mock()
         label1.name = "website"
-        label1.color = SYSTEM_LABEL_COLOR
+        label1.color = DEFAULT_CONFIG['system-color']
 
         self.assertEqual(
-            list(iter_systems([label1, label2])),
+            list(iter_systems([label1, label2], DEFAULT_CONFIG['system-color'])),
             ["website", ]
         )
 
         self.assertEqual(
-            list(iter_systems([label2])),
+            list(iter_systems([label2], DEFAULT_CONFIG['system-color'])),
             []
         )
 
@@ -209,16 +209,18 @@ class UtilTestCase(TestCase):
         label1 = Mock()
         label2 = Mock()
         label1.color = "FF4D4D"
+        label1.name = "major outage"
 
         self.assertEqual(
-            get_severity([label1, label2]),
+            get_severity([label1, label2], DEFAULT_CONFIG['status-labels']),
             "major outage"
         )
 
         label1.color = "000000"
+        label1.name = "random label"
 
         self.assertEqual(
-            get_severity([label1, label2]),
+            get_severity([label1, label2], DEFAULT_CONFIG['status-labels']),
             None
         )
 
